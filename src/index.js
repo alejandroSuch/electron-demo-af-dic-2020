@@ -1,6 +1,9 @@
-const { app, ipcMain, BrowserWindow, BrowserView } = require('electron');
-const markdown = require( "markdown" ).markdown;
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
+
+const editorBrowserView = require('./main/editorBrowserView');
+const viewerBrowserView = require('./main/viewerBrowserView');
+const ipcMarkdownHandler = require('./main/ipcMarkdownHandler');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -16,35 +19,11 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, 'render', 'index.html'));
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
-
-  const editorView = new BrowserView({
-    webPreferences: {
-      preload: path.join(__dirname, 'editor.js')
-    }
-  });
-  mainWindow.addBrowserView(editorView)
-  editorView.webContents.loadFile(path.join(__dirname, 'editor.html'));
-  editorView.setBounds({ x: 10, y: 50, width: 380, height: 510 });
-  editorView.webContents.openDevTools();
-
-  const viewerView = new BrowserView({
-    webPreferences: {
-      preload: path.join(__dirname, 'viewer.js')
-    }
-  });
-  mainWindow.addBrowserView(viewerView);
-  viewerView.webContents.loadFile(path.join(__dirname, 'viewer.html'));
-  viewerView.setBounds({ x: 410, y: 50, width: 380, height: 510 });
-  viewerView.webContents.openDevTools();
-
-  ipcMain.on('markdown-changed', (_event, text) => {
-    const html = markdown.toHTML(text);
-    viewerView.webContents.send('html-changed', html);
-  });
+  editorBrowserView.addTo(mainWindow);
+  viewerBrowserView.addTo(mainWindow);
+  ipcMarkdownHandler.init();
 };
 
 // This method will be called when Electron has finished

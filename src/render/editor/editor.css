@@ -1,0 +1,11 @@
+body {
+    background-color: #fff;
+}
+
+div[contenteditable] {
+    font-family: monospace;
+}
+
+div[contenteditable]:focus {
+    outline: none;
+}
